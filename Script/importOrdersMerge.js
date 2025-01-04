@@ -5,7 +5,7 @@ const Farmer = require("../schemas/farmerSchema");
 const Vegetable = require("../schemas/vegetableSchema");
 const mongoose = require("mongoose");
 
-// แยกผักชนิดเดียวกัน
+//รวมผักชนิดเดียวกันที่ปลูกวันเดียวกันเป็น order เดียวกัน
 const importOrders = async () => {
   try {
     await connectMongoDB();
@@ -43,27 +43,55 @@ const importOrders = async () => {
         continue;
       }
 
-      // สร้าง Order ใหม่
-      const newOrder = new Order({
+      // ค้นหาออเดอร์ที่มีอยู่แล้ว
+      let existingOrder = await Order.findOne({
         orderDate: orderDate,
-        vegetable: vegetable._id, // เชื่อมโยงกับ ID ของผัก
-        season: orderData.Season,
-        details: [
-          {
-            farmerId: farmer._id, // เชื่อมโยงกับ ID ของเกษตรกร
-            quantityKg: orderData.KG,
-            delivery: {
-              actualKg: orderData.KG, // ใช้ค่าเดียวกับ quantityKg
-              deliveredDate: orderDate, // ใช้วันที่เดียวกับ orderDate
-              status: "Complete", // ตั้งค่าเป็น Complete
-            },
-          },
-        ],
+        vegetable: vegetable._id,
       });
 
-      // บันทึกข้อมูลออเดอร์
-      await newOrder.save();
-      console.log(`Order for ${orderData.Name} added.`);
+      if (existingOrder) {
+        // หากมีออเดอร์อยู่แล้ว ให้เพิ่ม details ใหม่
+        const isFarmerInDetails = existingOrder.details.some(detail =>
+          detail.farmerId.equals(farmer._id)
+        );
+
+        if (isFarmerInDetails) {
+          console.log(`Farmer ${orderData.Name} already exists in this order.`);
+        } else {
+          existingOrder.details.push({
+            farmerId: farmer._id,
+            quantityKg: orderData.KG,
+            delivery: {
+              actualKg: orderData.KG,
+              deliveredDate: orderDate,
+              status: "Complete",
+            },
+          });
+          await existingOrder.save();
+          console.log(`Order for ${orderData.Name} merged into existing order.`);
+        }
+      } else {
+        // หากยังไม่มีออเดอร์ ให้สร้างใหม่
+        const newOrder = new Order({
+          orderDate: orderDate,
+          vegetable: vegetable._id,
+          season: orderData.Season,
+          details: [
+            {
+              farmerId: farmer._id,
+              quantityKg: orderData.KG,
+              delivery: {
+                actualKg: orderData.KG,
+                deliveredDate: orderDate,
+                status: "Complete",
+              },
+            },
+          ],
+        });
+
+        await newOrder.save();
+        console.log(`New order for ${orderData.Name} created.`);
+      }
     }
   } catch (error) {
     console.error("Error importing orders:", error);
