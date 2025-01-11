@@ -4,11 +4,11 @@
 
 ## Authentication
 
-| Endpoint            | Method | Description  | Body                                                                                                                                                                 |
-| ------------------- | ------ | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/auth/login`   | POST   | Login user   | `{ "email": "tam@tam", "password": "1234" }`                                                                                                                         |
-| `/api/admin/farmer` | POST   | Add a farmer | `{ "firstName": "นายอัมรินทร์", "lastName": "ดอกยี่สูน", "nickname": "แม็ก", "phone": "09876543210", "location": { "latitude": 9.086613, "longitude": 99.222596 } }` |
-| `/api/admin/user`   | POST   | Add user     | `{ "email": "tam@tam", "password": "1234" }`                                                                                                                         |
+| Endpoint             | Method | Description       | Body                                         |
+| -------------------- | ------ | ----------------- | -------------------------------------------- |
+| `/api/auth/login`    | POST   | Login user        | `{ "username": "tam@tam", "password": "1234" }` |
+| `/api/admin/farmer`  | POST   | Add a farmer | `{ "firstName": "นายอัมรินทร์", "lastName": "ดอกยี่สูน", "nickname": "แม็ก", "phone": "09876543210", "location": { "latitude": 9.086613, "longitude": 99.222596 } }` |
+| `/api/admin/users`   | POST   | Add user          | `{ "email": "tam@tam", "password": "1234" }` |
 
 ## Category
 
