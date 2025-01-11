@@ -10,18 +10,18 @@ const importOrders = async () => {
   try {
     await connectMongoDB();
 
-    const rawData = fs.readFileSync("D:/learningNode.js/Back-End_Project/public/json/order.json");
+    const rawData = fs.readFileSync("D:/Github/Back-End_Project/public/json/order.json");
     const ordersData = JSON.parse(rawData);
 
     for (const orderData of ordersData) {
-      // ค้นหาข้อมูลเกษตรกรจากชื่อ
+      // ค้นหาข้อมูลเกษตรกรจาก firstname และ lastname
       const farmer = await Farmer.findOne({
-        firstName: orderData.Name.split(" ")[0],
-        lastName: orderData.Name.split(" ")[1],
+        firstName: orderData.firstname,
+        lastName: orderData.lastname,
       });
 
       if (!farmer) {
-        console.log(`Farmer ${orderData.Name} not found.`);
+        console.log(`Farmer ${orderData.firstname} ${orderData.lastname} not found.`);
         continue;
       }
 
@@ -63,7 +63,7 @@ const importOrders = async () => {
 
       // บันทึกข้อมูลออเดอร์
       await newOrder.save();
-      console.log(`Order for ${orderData.Name} added.`);
+      console.log(`Order for ${orderData.firstname} ${orderData.lastname} added.`);
     }
   } catch (error) {
     console.error("Error importing orders:", error);

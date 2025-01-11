@@ -9,7 +9,7 @@ const importVegetables = async () => {
     await connectMongoDB();
 
     // อ่านข้อมูลจากไฟล์ order.json
-    const rawData = fs.readFileSync("D:/learningNode.js/Back-End_Project/public/json/order.json");
+    const rawData = fs.readFileSync("D:/Github/Back-End_Project/public/json/order.json");
     const ordersData = JSON.parse(rawData);
 
     // สร้างลิสต์ผักที่ไม่ซ้ำจากข้อมูลใน ordersData
