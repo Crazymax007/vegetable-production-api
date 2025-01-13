@@ -4,19 +4,29 @@
 
 ## Authentication
 
-| Endpoint             | Method | Description       | Body                                         |
-| -------------------- | ------ | ----------------- | -------------------------------------------- |
-| `/api/auth/login`    | POST   | Login user        | `{ "username": "tam@tam", "password": "1234" }` |
-| `/api/admin/farmer`  | POST   | Add a farmer | `{ "firstName": "นายอัมรินทร์", "lastName": "ดอกยี่สูน", "nickname": "แม็ก", "phone": "09876543210", "location": { "latitude": 9.086613, "longitude": 99.222596 } }` |
-| `/api/admin/users`   | POST   | Add user          | `{ "email": "tam@tam", "password": "1234" }` |
+| Endpoint          | Method | Description | Body                                            |
+| ----------------- | ------ | ----------- | ----------------------------------------------- |
+| `/api/auth/login` | POST   | Login user  | `{ "username": "ammarin", "password": "1234" }` |
 
-## Category
+## Farmers Management
 
-| Endpoint            | Method | Description           | Body                  |
-| ------------------- | ------ | --------------------- | --------------------- |
-| `/api/category`     | POST   | Create category       | `{ "name": "Test1" }` |
-| `/api/category`     | GET    | Get categories        | None                  |
-| `/api/category/:id` | DELETE | Delete category by ID | None                  |
+| Endpoint                | Method | Description         | Body                                             |
+| ----------------------- | ------ | ------------------- | ------------------------------------------------ |
+| `/api/admin/farmer`     | POST   | Add a farmer        | `ข้อมูลของfarmerทั้งหมด มันยาวเกินขี้เกียจเพิ่ม` |
+| `/api/admin/farmer`     | GET    | Get farmer          | None                                             |
+| `/api/admin/farmer/:id` | GET    | Get farmer by Id    | `{"id":123}`                                     |
+| `/api/admin/farmer/:id` | PUT    | Update farmer by Id | `{"id":123,(ต่อด้วยข้อมูลของfarmerทั้งหมด)`      |
+| `/api/admin/farmer/:id` | DELETE | Delete farmer by ID | `{"id":123}`                                     |
+
+## Users
+
+| Endpoint              | Method | Description       | Body                                             |
+| --------------------- | ------ | ----------------- | ------------------------------------------------ |
+| `/api/admin/user`     | POST   | Add a user        | `ข้อมูลของfarmerทั้งหมด มันยาวเกินขี้เกียจเพิ่ม` |
+| `/api/admin/user`     | GET    | Get user          | None                                             |
+| `/api/admin/user/:id` | GET    | Get user by Id    | `{"id":123}`                                     |
+| `/api/admin/user/:id` | PUT    | Update user by Id | `{"id":123,(ต่อด้วยข้อมูลของfarmerทั้งหมด)`      |
+| `/api/admin/user/:id` | DELETE | Delete user by ID | `{"id":123}`                                     |
 
 ## Product
 
