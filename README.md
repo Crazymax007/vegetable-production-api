@@ -4,19 +4,27 @@
 
 ## Authentication
 
-| Endpoint             | Method | Description       | Body                                         |
-| -------------------- | ------ | ----------------- | -------------------------------------------- |
-| `/api/auth/login`    | POST   | Login user        | `{ "username": "tam@tam", "password": "1234" }` |
-| `/api/admin/farmer`  | POST   | Add a farmer | `{ "firstName": "นายอัมรินทร์", "lastName": "ดอกยี่สูน", "nickname": "แม็ก", "phone": "09876543210", "location": { "latitude": 9.086613, "longitude": 99.222596 } }` |
-| `/api/admin/users`   | POST   | Add user          | `{ "email": "tam@tam", "password": "1234" }` |
+| Endpoint          | Method | Description | Body                                            |
+| ----------------- | ------ | ----------- | ----------------------------------------------- |
+| `/api/auth/login` | POST   | Login user  | `{ "username": "ammarin", "password": "1234" }` |
 
-## Category
+## Farmers Management
 
-| Endpoint            | Method | Description           | Body                  |
-| ------------------- | ------ | --------------------- | --------------------- |
-| `/api/category`     | POST   | Create category       | `{ "name": "Test1" }` |
-| `/api/category`     | GET    | Get categories        | None                  |
-| `/api/category/:id` | DELETE | Delete category by ID | None                  |
+| Endpoint              | Method | Description           | Body                                             |
+| --------------------- | ------ | --------------------- | ------------------------------------------------ |
+| `/api/admin/farmer`   | POST   | Add a farmer          | `ข้อมูลของfarmerทั้งหมด มันยาวเกินขี้เกียจเพิ่ม` |
+| `/api/admin/users`    | GET    | Get Users             | None                                             |
+| `/api/admin/users:id` | GET    | Get User by Id        | `{"id":123}`                                     |
+| `/api/admin/users:id` | PUT    | Update User by Id     | `{"id":123,(ต่อด้วยข้อมูลของfarmerทั้งหมด)`      |
+| `/api/admin/users:id` | DELETE | Delete category by ID | None                                             |
+
+## Users
+
+| Endpoint            | Method | Description           | Body                                            |
+| ------------------- | ------ | --------------------- | ----------------------------------------------- |
+| `/api/admin/users`  | POST   | Add user              | `{ "username": "ammarin", "password": "1234" }` |
+| `/api/category`     | GET    | Get categories        | None                                            |
+| `/api/category/:id` | DELETE | Delete category by ID | None                                            |
 
 ## Product
 
