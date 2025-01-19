@@ -28,7 +28,7 @@
 | `/api/admin/user/:id` | PUT    | Update user by Id | `{"id":123,(user)`                               |
 | `/api/admin/user/:id` | DELETE | Delete user by ID | `{"id":123}`                                     |
 
-## Vegetable Management
+## Vegetables Management
 
 | Endpoint              | Method | Description            | Body                                    |
 | --------------------- | ------ | ---------------------- | --------------------------------------- |
@@ -37,3 +37,13 @@
 | `/api/vegetables/:id` | GET    | Get Vegetable by Id    | `{"id":123}`                            |
 | `/api/vegetables/:id` | PATCH  | Update Vegetable by Id | `{"id":123,(ต่อด้วยข้อมูลของVegetable)` |
 | `/api/vegetables/:id` | DELETE | Delete Vegetable by ID | `{"id":123}`                            |
+
+## Orders Management
+
+| Endpoint              | Method | Description         | Body                                              |
+| --------------------- | ------ | ------------------- | ------------------------------------------------- |
+| `/api/orders`         | POST   | Add orders          | `{"id":123, (และข้อมูลลูกสวน,วันที่, จำนวนกิโล)}` |
+| `/api/orders?limit=5` | GET    | Get All orders      | ถ้าอยากกำหนดจำนวนที่จะดูก็ใส่limit                |
+| `/api/orders/:id`     | GET    | Get orders by Id    | `{"id":123}`                                      |
+| `/api/orders/:id`     | PATCH  | Update orders by Id | `{"id":123,(และข้อมูลลูกสวน,วันที่, จำนวนกิโล)`   |
+| `/api/orders/:id`     | DELETE | Delete orders by ID | `{"id":123}`                                      |
