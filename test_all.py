@@ -29,10 +29,6 @@ if filtered_data.empty:
 features = ['Area', 'ProbCode']  # Features
 target = 'ID'  # Target
 
-# ลบแถวที่ค่าในคอลัมน์ 'KG' ไม่ใช่ตัวเลข
-filtered_data = filtered_data[pd.to_numeric(filtered_data['KG'], errors='coerce').notnull()]
-filtered_data['KG'] = filtered_data['KG'].astype(float)
-
 # แยก Features และ Target
 X = filtered_data[features]
 y = filtered_data[target]
@@ -45,17 +41,23 @@ rf = RandomForestRegressor(n_estimators=1000, max_depth=10, random_state=50, oob
 rf.fit(X_train, y_train)
 
 # ทำนายค่า
-y_pred = rf.predict(X_test)
+filtered_data['Predicted_KG'] = rf.predict(X)
 
 # คำนวณ OOB Score, MSE, R2
 oob_score = rf.oob_score_ if hasattr(rf, "oob_score_") else None
-mse = mean_squared_error(y_test, y_pred)
-r2 = r2_score(y_test, y_pred)
+mse = mean_squared_error(y_test, rf.predict(X_test))
+r2 = r2_score(y_test, rf.predict(X_test))
+
+# แสดงข้อมูลเรียงจากมากไปน้อย โดยเลือก 15 ID ที่ไม่ซ้ำกันและเพิ่มเลขกำกับ
+sorted_farmers = filtered_data[['ID', 'firstname', 'lastname', 'Area', 'Predicted_KG']]
+sorted_farmers = sorted_farmers.drop_duplicates(subset=['ID']).sort_values(by='Predicted_KG', ascending=False).head(15)
+sorted_farmers.insert(0, 'Rank', range(1, len(sorted_farmers) + 1))
 
 # Feature Importance
 importances = rf.feature_importances_
 feature_names = X.columns
 importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+importance_df = importance_df.sort_values(by='Importance', ascending=False)
 
 # ส่งผลลัพธ์เป็น JSON
 result = {
@@ -63,7 +65,8 @@ result = {
     "oob_score": oob_score,
     "mse": mse,
     "r2": r2,
-    "feature_importance": importance_df.to_dict(orient='records')  # แปลง DataFrame เป็น list ของ dict
+    "top_farmers": sorted_farmers.to_dict(orient='records'),
+    "feature_importance": importance_df.to_dict(orient='records')
 }
 
 print(json.dumps(result))

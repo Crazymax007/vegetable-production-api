@@ -74,61 +74,75 @@ exports.getAllOrder = async (req, res) => {
   }
 };
 
-// ! ยังไม่ได้เทสนะครับผม
-// exports.updateOrder = async (req, res) => {
-//   try {
-//     const { id } = req.params; // รับ ID ของ Order ที่ต้องการแก้ไข
-//     const updates = req.body; // ข้อมูลที่ต้องการแก้ไข
+exports.getTopVegetablesByFarmer = async (req, res) => {
+  try {
+    const { farmerId } = req.params;
 
-//     // ตรวจสอบว่า ID เป็น ObjectId ที่ถูกต้องหรือไม่
-//     if (!mongoose.Types.ObjectId.isValid(id)) {
-//       return res.status(400).json({ message: "Invalid Order ID" });
-//     }
+    if (!farmerId) {
+      return res.status(400).json({ message: "Missing farmerId" });
+    }
 
-//     // อัปเดตข้อมูล Order
-//     const updatedOrder = await Order.findByIdAndUpdate(
-//       id,
-//       updates,
-//       { new: true, runValidators: true } // new: คืนค่าเอกสารที่อัปเดตแล้ว, runValidators: ตรวจสอบความถูกต้องของข้อมูล
-//     )
-//       .populate("vegetable", "name")
-//       .populate("details.farmerId", "name");
+    // กำหนดช่วงวันที่สำหรับปี 2024
+    const startOfYear = new Date("2024-01-01T00:00:00.000Z");
+    const endOfYear = new Date("2024-12-31T23:59:59.999Z");
 
-//     if (!updatedOrder) {
-//       return res.status(404).json({ message: "Order not found" });
-//     }
+    // ดึงข้อมูล order ของลูกสวนนี้ เฉพาะที่มี orderDate อยู่ในปี 2024
+    const orders = await Order.find({
+      "details.farmerId": farmerId,
+      orderDate: { $gte: startOfYear, $lte: endOfYear },
+    })
+      .populate("vegetable", "name imageUrl") // ✅ ดึง imageUrl ด้วย
+      .lean();
 
-//     res.status(200).json({
-//       message: "Order updated successfully",
-//       data: updatedOrder,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
+    if (!orders.length) {
+      return res
+        .status(404)
+        .json({ message: "No orders found for this farmer in 2024" });
+    }
 
-// // ลบ Order
-// exports.deleteOrder = async (req, res) => {
-//   try {
-//     const { id } = req.params; // รับ ID ของ Order ที่ต้องการลบ
+    // สร้าง Map เพื่อสรุปจำนวนกิโลกรัมที่ปลูกสำหรับผักแต่ละชนิด
+    const vegetableMap = new Map();
 
-//     // ตรวจสอบว่า ID เป็น ObjectId ที่ถูกต้องหรือไม่
-//     if (!mongoose.Types.ObjectId.isValid(id)) {
-//       return res.status(400).json({ message: "Invalid Order ID" });
-//     }
+    orders.forEach((order) => {
+      order.details.forEach((detail) => {
+        if (detail.farmerId.toString() === farmerId) {
+          const vegName = order.vegetable.name;
+          const vegImage = order.vegetable.imageUrl; // ✅ ดึง URL รูปภาพของผัก
+          const quantity = detail.quantityKg;
 
-//     // ลบ Order
-//     const deletedOrder = await Order.findByIdAndDelete(id);
+          if (vegetableMap.has(vegName)) {
+            let existing = vegetableMap.get(vegName);
+            vegetableMap.set(vegName, {
+              quantity: existing.quantity + quantity,
+              imageUrl: vegImage, // ✅ เก็บ imageUrl
+            });
+          } else {
+            vegetableMap.set(vegName, {
+              quantity,
+              imageUrl: vegImage, // ✅ เก็บ imageUrl
+            });
+          }
+        }
+      });
+    });
 
-//     if (!deletedOrder) {
-//       return res.status(404).json({ message: "Order not found" });
-//     }
+    // แปลง Map เป็น Array และเรียงข้อมูลตามจำนวนกิโลกรัม
+    const sortedVegetables = [...vegetableMap.entries()]
+      .sort((a, b) => b[1].quantity - a[1].quantity)
+      .slice(0, 3) // เอาแค่ 3 อันดับแรก
+      .map(([name, data]) => ({
+        name,
+        quantity: data.quantity,
+        imageUrl: data.imageUrl || "/uploads/default.png", // ✅ ถ้าไม่มีรูป ใช้ default
+      }));
 
-//     res.status(200).json({
-//       message: "Order deleted successfully",
-//       data: deletedOrder,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
+    res.status(200).json({
+      message: "success",
+      farmerId,
+      topVegetables: sortedVegetables,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

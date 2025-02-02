@@ -4,6 +4,7 @@ const morgan = require("morgan");
 const { readdirSync } = require("fs");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const path = require("path"); // ✅ เพิ่ม path module
 
 //database
 const connectMongoDB = require("./modules/database/mongoDB");
@@ -21,6 +22,12 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+// ✅ ให้ Express สามารถให้บริการไฟล์รูปภาพจากโฟลเดอร์ uploads/
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// โหลด route ทั้งหมดจากโฟลเดอร์ routes
 readdirSync("./routes").map((r) => app.use("/api", require(`./routes/${r}`)));
 
-app.listen(5000, () => console.log("Server is Running on Port "+chalk.yellow("5000")));
+app.listen(5000, () =>
+  console.log("Server is Running on Port " + chalk.yellow("5000"))
+);

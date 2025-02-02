@@ -12,7 +12,7 @@ const {
 const { verifyToken, verifyRole } = require("../middleware/authMiddleware");
 
 router.post("/admin/farmer", addFarmer);
-router.get("/admin/farmer", verifyToken, getFarmer);
+router.get("/admin/farmer", getFarmer);
 router.get("/admin/farmer/:id", getFarmerById);
 router.put("/admin/farmer/:id", updateFarmerById);
 router.delete("/admin/farmer/:id", deleteFarmerById);

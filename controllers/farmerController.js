@@ -1,6 +1,8 @@
 const Farmer = require("../schemas/farmerSchema");
 const User = require("../schemas/userSchema");
 
+const { formatFarmer } = require("../utils/formatList");
+
 exports.addFarmer = async (req, res) => {
   try {
     const { firstName, lastName, nickname, phone, location } = req.body;
@@ -51,7 +53,7 @@ exports.getFarmer = async (req, res) => {
     const farmers = await Farmer.find();
     const count = await Farmer.countDocuments();
     res.json({
-      message: "getFarmer successfully",
+      message: "success",
       count,
       data: farmers,
     });

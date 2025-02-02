@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 const vegetableSchema = new Schema(
   {
     name: { type: String, required: true, unique: true }, // ชื่อผัก
+    imageUrl: { type: String, required: false }, // เก็บพาธของรูปภาพ
   },
   { timestamps: true }
 );

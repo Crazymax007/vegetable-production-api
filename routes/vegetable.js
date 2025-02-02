@@ -9,10 +9,12 @@ const {
   deleteVegetables,
 } = require("../controllers/vegetableController");
 
+const upload = require("../middleware/upload");
+
 router.get("/vegetables", getVegetables);
 router.get("/vegetables/:id", getVegetablesById);
-router.post("/vegetables", addVegetable);
-router.patch("/vegetables/:id", updateVegetable);
+router.post("/vegetables", upload.single("image"), addVegetable);
+router.patch("/vegetables/:id", upload.single("image"), updateVegetable);
 router.delete("/vegetables/:id", deleteVegetables);
 
 module.exports = router;
