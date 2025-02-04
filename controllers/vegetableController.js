@@ -3,7 +3,6 @@ const Vegetable = require("../schemas/vegetableSchema");
 exports.getVegetables = async (req, res) => {
   try {
     const vegetables = await Vegetable.find();
-    console.log(vegetables);
     res.status(200).json({
       message: "success",
       data: vegetables,

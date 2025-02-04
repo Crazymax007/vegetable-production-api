@@ -21,12 +21,21 @@ exports.getAllOrder = async (req, res) => {
     const filter = {};
     if (season) filter.season = season;
 
-    // ตรวจสอบว่า search เป็น ObjectId หรือไม่
+    // ค้นหาผักจากชื่อก่อน ถ้า search เป็นชื่อผัก
     if (search) {
       if (mongoose.Types.ObjectId.isValid(search)) {
-        filter.vegetable = search; // ใช้ ObjectId โดยตรง
+        // ถ้าเป็น ObjectId ให้ค้นหาโดยใช้ ObjectId
+        filter.vegetable = search;
       } else {
-        filter.vegetable = new RegExp(search, "i"); // ค้นหาแบบ Partial Match
+        // ค้นหาผักจากชื่อ
+        const vegetable = await Vegetable.findOne({
+          name: new RegExp(search, "i"),
+        });
+        if (vegetable) {
+          filter.vegetable = vegetable._id; // ใช้ ObjectId ของผักที่ค้นพบ
+        } else {
+          return res.status(404).json({ message: "Vegetable not found" });
+        }
       }
     }
 
