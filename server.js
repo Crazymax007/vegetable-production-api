@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const app = express();
 const morgan = require("morgan");
@@ -15,14 +16,13 @@ connectMongoDB();
 app.use(morgan("dev"));
 app.use(
   cors({
-    origin: "http://localhost:5173", // อนุญาตเฉพาะ Frontend ที่กำหนด
-    credentials: true, // อนุญาตส่ง Cookie ระหว่างโดเมน
+    origin: "http://localhost:5173",
+    credentials: true, 
   })
 );
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ ให้ Express สามารถให้บริการไฟล์รูปภาพจากโฟลเดอร์ uploads/
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // โหลด route ทั้งหมดจากโฟลเดอร์ routes

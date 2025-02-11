@@ -1,7 +1,6 @@
 const Order = require("../schemas/orderSchema");
 const mongoose = require("mongoose");
 const Vegetable = require("../schemas/vegetableSchema");
-const { formatOrder } = require("../utils/formatList");
 
 // ดึงข้อมูล Order ทั้งหมด
 exports.getAllOrder = async (req, res) => {
@@ -14,7 +13,7 @@ exports.getAllOrder = async (req, res) => {
       actualKg, // จำนวนที่ส่งจริง
       status, // สถานะการส่ง
       orderDate, // วันที่สั่งปลูก
-    } = req.query;
+    } = req.body;
 
     const limit = parseInt(req.query.limit) || 10; // กำหนดจำนวนข้อมูลต่อครั้ง
 
@@ -65,7 +64,7 @@ exports.getAllOrder = async (req, res) => {
 
     const orders = await Order.find(filter)
       .populate("vegetable", "name") // แสดงชื่อผัก
-      .populate("details.farmerId", "name") // แสดงชื่อคน
+      .populate("details.farmerId", "firstName lastName") // แสดงชื่อและนามสกุลของเกษตรกร
       .limit(limit); // ดึงข้อมูลโดยมีการจำกัดจำนวน
 
     const totalOrders = await Order.countDocuments(filter);
