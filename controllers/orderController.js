@@ -10,63 +10,79 @@ exports.getTopVegetablesByFarmer = async (req, res) => {
       return res.status(400).json({ message: "Missing farmerId" });
     }
 
-    // กำหนดช่วงวันที่สำหรับปี 2024
-    const startOfYear = new Date("2024-01-01T00:00:00.000Z");
-    const endOfYear = new Date("2024-12-31T23:59:59.999Z");
+    // ✅ ใช้ปี 2024 เป็นค่าเริ่มต้น
+    const year = 2024;
 
-    // ดึงข้อมูล order ของลูกสวนนี้ เฉพาะที่มี orderDate อยู่ในปี 2024
+    // ✅ โค้ดสำหรับใช้ปีปัจจุบัน
+    // const currentYear = new Date().getFullYear();
+    // const year = currentYear;
+
+    const startOfYear = new Date(`${year}-01-01T00:00:00.000Z`);
+    const endOfYear = new Date(`${year}-12-31T23:59:59.999Z`);
+
+    // ดึงข้อมูล order ของลูกสวนนี้ เฉพาะที่มี orderDate อยู่ในปีที่กำหนด
     const orders = await Order.find({
       "details.farmerId": farmerId,
       orderDate: { $gte: startOfYear, $lte: endOfYear },
     })
-      .populate("vegetable", "name imageUrl") // ✅ ดึง imageUrl ด้วย
+      .populate("vegetable", "name imageUrl")
       .lean();
 
     if (!orders.length) {
       return res
         .status(404)
-        .json({ message: "No orders found for this farmer in 2024" });
+        .json({ message: `No orders found for this farmer in ${year}` });
     }
 
-    // สร้าง Map เพื่อสรุปจำนวนกิโลกรัมที่ปลูกสำหรับผักแต่ละชนิด
+    // สร้าง Map เพื่อสรุปจำนวนกิโลกรัมที่ส่งจริง (`actualKg`) สำหรับผักแต่ละชนิด
     const vegetableMap = new Map();
 
     orders.forEach((order) => {
       order.details.forEach((detail) => {
         if (detail.farmerId.toString() === farmerId) {
-          const vegName = order.vegetable.name;
-          const vegImage = order.vegetable.imageUrl; // ✅ ดึง URL รูปภาพของผัก
-          const quantity = detail.quantityKg;
+          const actualKg = detail.delivery?.actualKg || 0;
+          if (actualKg > 0) {
+            const vegName = order.vegetable.name;
+            const vegImage = order.vegetable.imageUrl;
 
-          if (vegetableMap.has(vegName)) {
-            let existing = vegetableMap.get(vegName);
-            vegetableMap.set(vegName, {
-              quantity: existing.quantity + quantity,
-              imageUrl: vegImage, // ✅ เก็บ imageUrl
-            });
-          } else {
-            vegetableMap.set(vegName, {
-              quantity,
-              imageUrl: vegImage, // ✅ เก็บ imageUrl
-            });
+            if (vegetableMap.has(vegName)) {
+              let existing = vegetableMap.get(vegName);
+              vegetableMap.set(vegName, {
+                quantity: existing.quantity + actualKg,
+                imageUrl: vegImage,
+              });
+            } else {
+              vegetableMap.set(vegName, {
+                quantity: actualKg,
+                imageUrl: vegImage,
+              });
+            }
           }
         }
       });
     });
 
-    // แปลง Map เป็น Array และเรียงข้อมูลตามจำนวนกิโลกรัม
+    // ถ้าไม่มีข้อมูลที่ actualKg > 0 ส่ง 404 กลับไป
+    if (vegetableMap.size === 0) {
+      return res.status(404).json({
+        message: `No delivered vegetables found for this farmer in ${year}`,
+      });
+    }
+
+    // แปลง Map เป็น Array และเรียงข้อมูลตาม actualKg
     const sortedVegetables = [...vegetableMap.entries()]
       .sort((a, b) => b[1].quantity - a[1].quantity)
       .slice(0, 3) // เอาแค่ 3 อันดับแรก
       .map(([name, data]) => ({
         name,
         quantity: data.quantity,
-        imageUrl: data.imageUrl || "/uploads/default.png", // ✅ ถ้าไม่มีรูป ใช้ default
+        imageUrl: data.imageUrl || "/uploads/default.png",
       }));
 
     res.status(200).json({
       message: "success",
       farmerId,
+      year, // ✅ ส่งปีที่ใช้ไปด้วย
       topVegetables: sortedVegetables,
     });
   } catch (error) {
@@ -86,7 +102,7 @@ exports.getAllOrder = async (req, res) => {
       actualKg, // จำนวนที่ส่งจริง
       status, // สถานะการส่ง
       orderDate, // วันที่สั่งปลูก
-    } = req.body;
+    } = req.query;
 
     const limit = parseInt(req.query.limit) || 0; // กำหนดจำนวนข้อมูลต่อครั้ง
 
@@ -187,26 +203,23 @@ exports.createOrder = async (req, res) => {
     const {
       orderDate, // วันที่สั่งปลูก
       vegetableId, // ObjectId ของผักที่สั่ง
-      season, // ฤดูการปลูก
       details, // รายละเอียดของการสั่งซื้อ (ข้อมูลเกษตรกรและจำนวน)
     } = req.body;
 
     // ตรวจสอบข้อมูลที่ได้รับ
-    if (
-      !orderDate ||
-      !vegetableId ||
-      !season ||
-      !details ||
-      details.length === 0
-    ) {
+    if (!orderDate || !vegetableId || !details || details.length === 0) {
       return res.status(400).json({ message: "Missing required fields" });
     }
+
+    // คำนวณฤดูจาก orderDate
+    const month = new Date(orderDate).getMonth() + 1; // getMonth() เริ่มจาก 0
+    const season = month >= 2 && month <= 5 ? "Summer" : "Rain";
 
     // สร้าง Object สำหรับ Order
     const newOrder = new Order({
       orderDate,
       vegetable: vegetableId,
-      season,
+      season, // ใช้ค่าที่คำนวณได้
       details,
     });
 
@@ -329,83 +342,3 @@ exports.deleteOrder = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-// exports.Confarm = async (req, res) => {
-//   try {
-//     const { orderId } = req.params;
-//     const updateData = req.body;
-
-//     if (!orderId) {
-//       return res.status(400).json({ message: "Missing orderId" });
-//     }
-
-//     const order = await Order.findById(orderId);
-//     if (!order) {
-//       return res.status(404).json({ message: "Order not found" });
-//     }
-
-//     let isUpdated = false;
-
-//     // ✅ อัปเดตข้อมูลทั่วไป
-//     if (updateData.orderDate !== undefined) {
-//       order.orderDate = updateData.orderDate;
-//       isUpdated = true;
-//     }
-//     if (updateData.vegetable !== undefined) {
-//       order.vegetable = updateData.vegetable;
-//       isUpdated = true;
-//     }
-//     if (updateData.season !== undefined) {
-//       order.season = updateData.season;
-//       isUpdated = true;
-//     }
-
-//     // ✅ อัปเดต `details` แบบลึก
-//     if (updateData.details && Array.isArray(updateData.details)) {
-//       updateData.details.forEach((updateDetail) => {
-//         const existingDetail = order.details.find(
-//           (d) => d._id.toString() === updateDetail._id
-//         );
-
-//         if (existingDetail) {
-//           if (updateDetail.quantityKg !== undefined) {
-//             existingDetail.quantityKg = updateDetail.quantityKg;
-//             isUpdated = true;
-//           }
-//           if (updateDetail.delivery) {
-//             if (updateDetail.delivery.actualKg !== undefined) {
-//               existingDetail.delivery.actualKg = updateDetail.delivery.actualKg;
-//               isUpdated = true;
-//             }
-//             if (updateDetail.delivery.deliveredDate !== undefined) {
-//               existingDetail.delivery.deliveredDate =
-//                 updateDetail.delivery.deliveredDate;
-//               isUpdated = true;
-//             }
-//             if (updateDetail.delivery.status !== undefined) {
-//               existingDetail.delivery.status = updateDetail.delivery.status;
-//               isUpdated = true;
-//             }
-//           }
-//         }
-//       });
-
-//       order.markModified("details"); // 🔥 บอก Mongoose ว่า details ถูกแก้ไข
-//     }
-
-//     if (!isUpdated) {
-//       return res.status(400).json({ message: "No updates were made" });
-//     }
-
-//     order.updatedAt = new Date();
-//     await order.save();
-
-//     res.status(200).json({
-//       message: "Order updated successfully",
-//       order,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
