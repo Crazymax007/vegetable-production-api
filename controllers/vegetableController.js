@@ -76,8 +76,8 @@ exports.addVegetable = async (req, res) => {
 exports.updateVegetable = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined; // ✅ อัปเดตเฉพาะเมื่อมีไฟล์
+    const { name, removeImage } = req.body;
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
 
     if (!id.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({ message: "Invalid ID format" });
@@ -85,7 +85,15 @@ exports.updateVegetable = async (req, res) => {
 
     const updateData = {};
     if (name) updateData.name = name;
-    if (imageUrl) updateData.imageUrl = imageUrl;
+    
+    // ถ้ามีการอัพโหลดรูปใหม่
+    if (imageUrl) {
+      updateData.imageUrl = imageUrl;
+    } 
+    // ถ้าต้องการลบรูป
+    else if (removeImage === 'true') {
+      updateData.imageUrl = ''; // หรือค่าเริ่มต้นที่คุณต้องการ
+    }
 
     const updatedVegetable = await Vegetable.findByIdAndUpdate(id, updateData, {
       new: true,

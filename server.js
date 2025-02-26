@@ -5,7 +5,7 @@ const morgan = require("morgan");
 const { readdirSync } = require("fs");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const path = require("path"); // ✅ เพิ่ม path module
+const path = require("path");
 
 //database
 const connectMongoDB = require("./modules/database/mongoDB");
@@ -16,7 +16,7 @@ connectMongoDB();
 app.use(morgan("dev"));
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:5175"],
     credentials: true, 
   })
 );

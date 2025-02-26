@@ -196,13 +196,15 @@ exports.deleteFarmerById = async (req, res) => {
       });
     }
     // ลบ farmer
-    await User.deleteMany({ farmerId: farmer._id });
+    await Farmer.findByIdAndDelete(id);
 
     // ลบ User ที่เชื่อมโยงกับ Farmer
     const usersToDelete = await User.find({ farmerId: farmer._id });
     if (usersToDelete.length > 0) {
       await Farmer.findByIdAndDelete(id);
       console.log(`Deleted ${usersToDelete.length} users linked to farmer.`);
+    } else {
+      console.log("No users linked to farmer.");
     }
 
     // ส่งข้อความยืนยันการลบ
