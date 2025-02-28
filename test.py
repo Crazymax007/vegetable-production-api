@@ -9,7 +9,8 @@ from sklearn.metrics import mean_squared_error, r2_score
 df = pd.read_csv('Plants_Up.csv', encoding='UTF-8')#Plants.csv
 
 # เลือกเฉพาะแถวที่มีค่าคอลัมน์ 'Plant' เท่ากับ 'ผักกาดหอม'
-filtered_data = df.query("Plant == 'กวางตุ้งฮ่องเต้'")
+# filtered_data = df.query("Plant == 'กวางตุ้งฮ่องเต้'")
+filtered_data = df.query("Plant == 'บวบ'")
 
 # เลือกค่ามากที่สุด 5 อันดับของแต่ละลูกสวน
 top_5_per_farmer = filtered_data.groupby('ID').apply(lambda x: x.nlargest(5, 'KG')).reset_index(drop=True)

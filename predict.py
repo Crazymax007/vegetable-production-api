@@ -11,8 +11,13 @@ plant = sys.argv[1]
 required_kg = int(sys.argv[2])
 num_farmers = int(sys.argv[3])
 
-# โหลดข้อมูล
-df = pd.read_csv("Plants_Up.csv", encoding="UTF-8")
+# ตรวจสอบการโหลดไฟล์ CSV
+try:
+    df = pd.read_csv("Plants_Up.csv", encoding="UTF-8")
+except Exception as e:
+    print(json.dumps({"error": f"Failed to load CSV: {str(e)}"}))
+    sys.exit(1)
+
 
 # กรองข้อมูลตามชนิดพืช
 filtered_data = df.query(f"Plant == '{plant}'")

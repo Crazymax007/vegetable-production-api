@@ -72,5 +72,55 @@ router.post("/predict", (req, res) => {
     }
   });
 });
+router.post("/check-available-farmers", (req, res) => {
+  const { plant } = req.body;
+
+  if (!plant) {
+    return res
+      .status(400)
+      .json({ success: false, error: "Missing plant parameter" });
+  }
+
+  // เรียกใช้ Python script เพื่อดึงข้อมูลจำนวนลูกสวนที่มี
+  const pythonProcess = spawn("python", ["check_farmers.py", plant]);
+
+  let dataToSend = "";
+  let errorOutput = "";
+
+  // รับข้อมูลจาก stdout ของ Python script
+  pythonProcess.stdout.on("data", (data) => {
+    dataToSend += data.toString();
+  });
+
+  // รับข้อมูล error จาก stderr
+  pythonProcess.stderr.on("data", (data) => {
+    errorOutput += data.toString();
+  });
+
+  // ตรวจสอบเมื่อ Python script ทำงานเสร็จ
+  pythonProcess.on("close", (code) => {
+    if (code === 0) {
+      try {
+        const jsonResponse = JSON.parse(dataToSend);
+        if (jsonResponse.error) {
+          return res
+            .status(500)
+            .json({ success: false, error: jsonResponse.error });
+        }
+        res.json({
+          success: true,
+          availableFarmers: jsonResponse.availableFarmers,
+        });
+      } catch (err) {
+        res.status(500).json({
+          success: false,
+          error: "Invalid JSON format from Python script",
+        });
+      }
+    } else {
+      res.status(500).json({ success: false, error: errorOutput });
+    }
+  });
+});
 
 module.exports = router;
