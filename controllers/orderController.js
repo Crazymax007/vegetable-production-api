@@ -92,76 +92,17 @@ exports.getTopVegetablesByFarmer = async (req, res) => {
 };
 
 // ดึงข้อมูล Order ทั้งหมด
+// ดึงข้อมูล Order ทั้งหมด พร้อมข้อมูลของ Buyer
 exports.getAllOrder = async (req, res) => {
   try {
-    const {
-      search, // ชื่อผักหรือ ObjectId
-      season, // ฤดู
-      farmerId, // ไอดีของลูกสวน
-      quantity, // จำนวนที่กำหนด
-      actualKg, // จำนวนที่ส่งจริง
-      status, // สถานะการส่ง
-      orderDate, // วันที่สั่งปลูก
-    } = req.query;
-
-    const limit = parseInt(req.query.limit) || 0; // กำหนดจำนวนข้อมูลต่อครั้ง
-
-    const filter = {};
-    if (season) filter.season = season;
-
-    // ค้นหาผักจากชื่อก่อน ถ้า search เป็นชื่อผัก
-    if (search) {
-      if (mongoose.Types.ObjectId.isValid(search)) {
-        // ถ้าเป็น ObjectId ให้ค้นหาโดยใช้ ObjectId
-        filter.vegetable = search;
-      } else {
-        // ค้นหาผักจากชื่อ
-        const vegetable = await Vegetable.findOne({
-          name: new RegExp(search, "i"),
-        });
-        if (vegetable) {
-          filter.vegetable = vegetable._id; // ใช้ ObjectId ของผักที่ค้นพบ
-        } else {
-          return res.status(404).json({ message: "Vegetable not found" });
-        }
-      }
-    }
-
-    if (orderDate) {
-      const parsedDate = new Date(orderDate);
-      if (!isNaN(parsedDate)) {
-        const startOfDay = new Date(parsedDate.setUTCHours(0, 0, 0, 0));
-        const endOfDay = new Date(parsedDate.setUTCHours(23, 59, 59, 999));
-        filter.orderDate = { $gte: startOfDay, $lt: endOfDay };
-      } else {
-        return res.status(400).json({ message: "Invalid orderDate format" });
-      }
-    }
-
-    // ค้นหาใน details
-    if (farmerId || quantity || actualKg || status) {
-      filter.details = { $elemMatch: {} };
-      if (farmerId) filter.details.$elemMatch.farmerId = farmerId;
-      if (quantity)
-        filter.details.$elemMatch.quantityKg = { $gte: parseFloat(quantity) };
-      if (actualKg)
-        filter.details.$elemMatch["delivery.actualKg"] = {
-          $gte: parseFloat(actualKg),
-        };
-      if (status) filter.details.$elemMatch["delivery.status"] = status;
-    }
-
-    const orders = await Order.find(filter)
+    const orders = await Order.find({})
       .populate("vegetable", "name") // แสดงชื่อผัก
+      .populate("buyerId", "name contact") // แสดงชื่อและข้อมูลติดต่อของ Buyer
       .populate("details.farmerId", "firstName lastName") // แสดงชื่อและนามสกุลของเกษตรกร
-      .limit(limit); // ดึงข้อมูลโดยมีการจำกัดจำนวน
-
-    const totalOrders = await Order.countDocuments(filter);
+      .lean();
 
     res.status(200).json({
       message: "success",
-      totalOrders,
-      pageSize: orders.length,
       data: orders,
     });
   } catch (error) {
@@ -203,11 +144,18 @@ exports.createOrder = async (req, res) => {
     const {
       orderDate, // วันที่สั่งปลูก
       vegetableId, // ObjectId ของผักที่สั่ง
+      buyerId, // ObjectId ของผู้ซื้อ
       details, // รายละเอียดของการสั่งซื้อ (ข้อมูลเกษตรกรและจำนวน)
     } = req.body;
 
     // ตรวจสอบข้อมูลที่ได้รับ
-    if (!orderDate || !vegetableId || !details || details.length === 0) {
+    if (
+      !orderDate ||
+      !vegetableId ||
+      !buyerId ||
+      !details ||
+      details.length === 0
+    ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -219,6 +167,7 @@ exports.createOrder = async (req, res) => {
     const newOrder = new Order({
       orderDate,
       vegetable: vegetableId,
+      buyerId, // เพิ่ม buyerId
       season, // ใช้ค่าที่คำนวณได้
       details,
     });
@@ -236,7 +185,7 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// update Order ทั้งหมด
+// อัปเดต Order
 exports.updateOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -260,6 +209,10 @@ exports.updateOrder = async (req, res) => {
     }
     if (updateData.vegetable !== undefined) {
       order.vegetable = updateData.vegetable;
+      isUpdated = true;
+    }
+    if (updateData.buyerId !== undefined) {
+      order.buyerId = updateData.buyerId; // อัปเดต buyerId
       isUpdated = true;
     }
     if (updateData.season !== undefined) {

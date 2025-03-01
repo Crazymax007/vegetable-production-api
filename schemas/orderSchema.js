@@ -10,6 +10,11 @@ const orderSchema = new Schema(
       ref: "Vegetable",
       required: true,
     }, // ชนิดของผักที่สั่ง
+    buyer: {
+      type: Schema.Types.ObjectId,
+      ref: "Buyer", // อ้างอิงจากโมเดล Buyer
+      required: true,
+    }, // ผู้ซื้อที่เกี่ยวข้อง
     season: {
       type: String,
       enum: ["Rain", "Summer"],

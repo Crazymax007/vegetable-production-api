@@ -6,7 +6,7 @@ exports.getBuyer = async (req, res) => {
     const buyers = await Buyer.find();
     res.json({
       message: "success",
-      buyers,
+      data: buyers,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -91,7 +91,7 @@ exports.deleteBuyer = async (req, res) => {
     // ส่งข้อความเมื่อการลบสำเร็จ พร้อมข้อมูลของ Buyer ที่ถูกลบ
     res.json({ 
       message: "success", 
-      deletedBuyer: buyer
+      data: buyer
     });
   } catch (err) {
     // กรณีเกิดข้อผิดพลาดจาก server
