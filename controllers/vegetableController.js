@@ -85,14 +85,14 @@ exports.updateVegetable = async (req, res) => {
 
     const updateData = {};
     if (name) updateData.name = name;
-    
+
     // ถ้ามีการอัพโหลดรูปใหม่
     if (imageUrl) {
       updateData.imageUrl = imageUrl;
-    } 
+    }
     // ถ้าต้องการลบรูป
-    else if (removeImage === 'true') {
-      updateData.imageUrl = ''; // หรือค่าเริ่มต้นที่คุณต้องการ
+    else if (removeImage === "true") {
+      updateData.imageUrl = ""; // หรือค่าเริ่มต้นที่คุณต้องการ
     }
 
     const updatedVegetable = await Vegetable.findByIdAndUpdate(id, updateData, {

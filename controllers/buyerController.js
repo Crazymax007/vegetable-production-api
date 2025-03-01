@@ -57,6 +57,17 @@ exports.updateBuyer = async (req, res) => {
   const { name, contact } = req.body;
 
   try {
+    // ตรวจสอบชื่อว่าซ้ำหรือไม่
+    const existingBuyer = await Buyer.findOne({
+      name: { $regex: new RegExp(`^${name}$`, "i") },
+      _id: { $ne: req.params.id }, // ยกเว้นตัวเอง
+    });
+    if (existingBuyer) {
+      return res
+        .status(400)
+        .json({ message: "Buyer with this name already exists" });
+    }
+
     // ค้นหาและอัพเดทข้อมูล Buyer
     const updatedBuyer = await Buyer.findByIdAndUpdate(
       req.params.id,
@@ -76,7 +87,6 @@ exports.updateBuyer = async (req, res) => {
   }
 };
 
-// ✅ ลบ Buyer ด้วย ID
 // ✅ ลบข้อมูล Buyer ด้วย ID
 exports.deleteBuyer = async (req, res) => {
   try {
@@ -89,13 +99,12 @@ exports.deleteBuyer = async (req, res) => {
     }
 
     // ส่งข้อความเมื่อการลบสำเร็จ พร้อมข้อมูลของ Buyer ที่ถูกลบ
-    res.json({ 
-      message: "success", 
-      data: buyer
+    res.json({
+      message: "success",
+      data: buyer,
     });
   } catch (err) {
     // กรณีเกิดข้อผิดพลาดจาก server
     res.status(500).json({ message: err.message });
   }
 };
-

@@ -2,6 +2,8 @@ const Order = require("../schemas/orderSchema");
 const mongoose = require("mongoose");
 const Vegetable = require("../schemas/vegetableSchema");
 
+mongoose.set("strictPopulate", false); // เปิดใช้งาน strictPopulate false
+
 exports.getTopVegetablesByFarmer = async (req, res) => {
   try {
     const { farmerId } = req.params;
@@ -91,18 +93,17 @@ exports.getTopVegetablesByFarmer = async (req, res) => {
   }
 };
 
-// ดึงข้อมูล Order ทั้งหมด
-// ดึงข้อมูล Order ทั้งหมด พร้อมข้อมูลของ Buyer
 exports.getAllOrder = async (req, res) => {
   try {
     const orders = await Order.find({})
-      .populate("vegetable", "name") // แสดงชื่อผัก
-      .populate("buyerId", "name contact") // แสดงชื่อและข้อมูลติดต่อของ Buyer
-      .populate("details.farmerId", "firstName lastName") // แสดงชื่อและนามสกุลของเกษตรกร
+      .populate("vegetable", "name")
+      .populate("buyer", "name contact")
+      .populate("details.farmerId", "firstName lastName")
       .lean();
 
     res.status(200).json({
       message: "success",
+      count: orders.length,
       data: orders,
     });
   } catch (error) {
@@ -122,6 +123,7 @@ exports.getOrderById = async (req, res) => {
 
     const order = await Order.findById(orderId)
       .populate("vegetable", "name")
+      .populate("buyer", "name contact")
       .populate("details.farmerId", "firstName lastName");
 
     if (!order) {
@@ -138,7 +140,6 @@ exports.getOrderById = async (req, res) => {
   }
 };
 
-// สร้าง Order
 exports.createOrder = async (req, res) => {
   try {
     const {
@@ -167,7 +168,7 @@ exports.createOrder = async (req, res) => {
     const newOrder = new Order({
       orderDate,
       vegetable: vegetableId,
-      buyerId, // เพิ่ม buyerId
+      buyer: buyerId,
       season, // ใช้ค่าที่คำนวณได้
       details,
     });
@@ -185,7 +186,6 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// อัปเดต Order
 exports.updateOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
