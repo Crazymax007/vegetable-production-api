@@ -147,6 +147,7 @@ exports.createOrder = async (req, res) => {
       vegetableId, // ObjectId ของผักที่สั่ง
       buyerId, // ObjectId ของผู้ซื้อ
       details, // รายละเอียดของการสั่งซื้อ (ข้อมูลเกษตรกรและจำนวน)
+      dueDate, // วันที่กำหนดส่ง
     } = req.body;
 
     // ตรวจสอบข้อมูลที่ได้รับ
@@ -155,7 +156,8 @@ exports.createOrder = async (req, res) => {
       !vegetableId ||
       !buyerId ||
       !details ||
-      details.length === 0
+      details.length === 0 ||
+      !dueDate // ตรวจสอบวันที่กำหนดส่ง
     ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
@@ -171,6 +173,7 @@ exports.createOrder = async (req, res) => {
       buyer: buyerId,
       season, // ใช้ค่าที่คำนวณได้
       details,
+      dueDate, // เพิ่ม dueDate
     });
 
     // บันทึก Order ลงในฐานข้อมูล

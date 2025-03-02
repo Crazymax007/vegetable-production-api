@@ -39,6 +39,7 @@ const orderSchema = new Schema(
         },
       },
     ],
+    dueDate: { type: Date, required: true }, // วันที่กำหนดส่ง
   },
   { timestamps: true }
 );
