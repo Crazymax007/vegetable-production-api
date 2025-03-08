@@ -24,11 +24,13 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+
     // สร้าง JWT
     const payload = {
       id: user._id,
       username: user.username,
       role: user.role,
+      farmerId: user.farmerId, 
     };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "1d",
@@ -51,9 +53,26 @@ exports.login = async (req, res) => {
   }
 };
 
-exports.getUserInfo = (req, res) => {
-  const { id, username, role } = req.user; // ดึงข้อมูลจาก Middleware verifyToken
-  res.status(200).json({ id, username, role });
+exports.getUserInfo = async (req, res) => {
+  const { id, username, role, farmerId } = req.user; // ดึงข้อมูลจาก Middleware verifyToken
+
+  // ถ้า role เป็น 'farmer'
+  if (role === "farmer") {
+    // เช็คว่ามีการเชื่อมโยงกับ Farmer หรือไม่
+    return res.status(200).json({
+      id,
+      username,
+      role,
+      farmerId,
+    });
+  }
+
+  // ถ้าไม่ใช่ role 'farmer' ก็แสดงข้อมูลทั่วไป
+  res.status(200).json({
+    id,
+    username,
+    role,
+  });
 };
 
 exports.logout = (req, res) => {

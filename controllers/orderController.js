@@ -165,26 +165,6 @@ exports.getAllOrder = async (req, res) => {
   }
 };
 
-// exports.getAllOrder = async (req, res) => {
-//   try {
-//     const orders = await Order.find({})
-//       .populate("vegetable", "name")
-//       .populate("buyer", "name contact")
-//       .populate("details.farmerId", "firstName lastName")
-//       .lean();
-
-//     res.status(200).json({
-//       message: "success",
-//       count: orders.length,
-//       data: orders,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       message: error.message,
-//     });
-//   }
-// };
-
 exports.getOrderById = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -396,5 +376,69 @@ exports.deleteOrder = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getDashboardOrder = async (req, res) => {
+  try {
+    const {
+      limit = 0,
+      search = "",
+      season = "",
+      quantity = "",
+      actualKg = "",
+      status = "Complete",
+      orderDate = "",
+      dueDate = "",
+    } = req.query;
+
+    const queryConditions = {};
+
+    // ถ้ามีการค้นหาจากคำค้น (search), ค้นหาจากชื่อผักหรือ vegetableId
+    if (search) {
+      queryConditions.$or = [
+        { "vegetable.name": { $regex: search, $options: "i" } }, // ค้นหาจากชื่อผัก
+        { vegetable: search }, // ค้นหาจาก ID ของผัก
+      ];
+    }
+
+    if (season) {
+      queryConditions.season = season;
+    }
+
+    if (quantity) {
+      queryConditions["details.quantityKg"] = quantity;
+    }
+
+    if (actualKg) {
+      queryConditions["details.delivery.actualKg"] = actualKg;
+    }
+
+    if (status) {
+      queryConditions["details.delivery.status"] = status;
+    }
+
+    if (orderDate) {
+      queryConditions.orderDate = { $gte: new Date(orderDate) }; // ค้นหาจากวันที่
+    }
+
+    if (dueDate) {
+      queryConditions.dueDate = { $gte: new Date(dueDate) }; // ค้นหาจากวันที่กำหนดส่ง
+    }
+
+    const orders = await Order.find(queryConditions)
+      .populate("vegetable", "name")
+      .limit(Number(limit)) // กำหนด limit สำหรับ pagination
+      .lean();
+
+    res.status(200).json({
+      message: "success",
+      count: orders.length,
+      data: orders,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };

@@ -10,9 +10,11 @@ const {
   updateOrder,
   getOrderById,
   deleteOrderDetail,
+  getDashboardOrder
 } = require("../controllers/orderController");
 
 router.get("/orders", getAllOrder);
+router.get("/ordersBoard", getDashboardOrder);
 router.get("/orders/:orderId", getOrderById);
 router.post("/orders", createOrder);
 router.delete("/orders/:orderId", deleteOrder);
