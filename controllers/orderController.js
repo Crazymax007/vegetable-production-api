@@ -105,6 +105,7 @@ exports.getAllOrder = async (req, res) => {
       status = "",
       orderDate = "",
       dueDate = "",
+      buyerId = "", // เพิ่ม query parameter สำหรับค้นหาจาก buyer ID
     } = req.query;
 
     // สร้างเงื่อนไขการค้นหาตาม query params
@@ -116,6 +117,11 @@ exports.getAllOrder = async (req, res) => {
         { "vegetable.name": { $regex: search, $options: "i" } }, // ค้นหาจากชื่อผัก
         { vegetable: search }, // ค้นหาจาก ID ของผัก
       ];
+    }
+
+    // ถ้ามีการค้นหาจาก buyerId
+    if (buyerId) {
+      queryConditions["buyer"] = buyerId; // ค้นหาจาก ID ของผู้ซื้อ
     }
 
     if (season) {
@@ -148,7 +154,7 @@ exports.getAllOrder = async (req, res) => {
 
     const orders = await Order.find(queryConditions)
       .populate("vegetable", "name")
-      .populate("buyer", "name contact")
+      .populate("buyer", "name contact") // รวมข้อมูลของ buyer
       .populate("details.farmerId", "firstName lastName")
       .limit(Number(limit)) // กำหนด limit สำหรับ pagination
       .lean();
@@ -440,5 +446,86 @@ exports.getDashboardOrder = async (req, res) => {
     res.status(500).json({
       message: error.message,
     });
+  }
+};
+
+exports.getTopVegetables = async (req, res) => {
+  try {
+    // ✅ ใช้ปี 2024 เป็นค่าเริ่มต้น
+    const year = 2024;
+
+    // ✅ โค้ดสำหรับใช้ปีปัจจุบัน
+    // const currentYear = new Date().getFullYear();
+    // const year = currentYear;
+
+    // กำหนดจำนวนสูงสุดที่ต้องการจาก query parameter, ถ้าไม่ได้ส่งจะใช้ค่าเริ่มต้นเป็น 5
+    const limit = parseInt(req.query.limit) || 5;
+
+    const startOfYear = new Date(`${year}-01-01T00:00:00.000Z`);
+    const endOfYear = new Date(`${year}-12-31T23:59:59.999Z`);
+
+    // ดึงข้อมูล order ของทุกสวนที่มี orderDate อยู่ในปีที่กำหนด
+    const orders = await Order.find({
+      orderDate: { $gte: startOfYear, $lte: endOfYear },
+    })
+      .populate("vegetable", "name imageUrl")
+      .lean();
+
+    if (!orders.length) {
+      return res
+        .status(404)
+        .json({ message: `No orders found for the year ${year}` });
+    }
+
+    // สร้าง Map เพื่อสรุปจำนวนกิโลกรัมที่ส่งจริง (`actualKg`) สำหรับผักแต่ละชนิด
+    const vegetableMap = new Map();
+
+    orders.forEach((order) => {
+      order.details.forEach((detail) => {
+        const actualKg = detail.delivery?.actualKg || 0;
+        if (actualKg > 0) {
+          const vegName = order.vegetable.name;
+          const vegImage = order.vegetable.imageUrl;
+
+          if (vegetableMap.has(vegName)) {
+            let existing = vegetableMap.get(vegName);
+            vegetableMap.set(vegName, {
+              quantity: existing.quantity + actualKg,
+              imageUrl: vegImage,
+            });
+          } else {
+            vegetableMap.set(vegName, {
+              quantity: actualKg,
+              imageUrl: vegImage,
+            });
+          }
+        }
+      });
+    });
+
+    // ถ้าไม่มีข้อมูลที่ actualKg > 0 ส่ง 404 กลับไป
+    if (vegetableMap.size === 0) {
+      return res.status(404).json({
+        message: `No delivered vegetables found in ${year}`,
+      });
+    }
+
+    // แปลง Map เป็น Array และเรียงข้อมูลตาม actualKg
+    const sortedVegetables = [...vegetableMap.entries()]
+      .sort((a, b) => b[1].quantity - a[1].quantity)
+      .slice(0, limit) // เอาตามจำนวนที่กำหนดจาก query parameter
+      .map(([name, data]) => ({
+        name,
+        quantity: data.quantity,
+        imageUrl: data.imageUrl || "/uploads/default.png",
+      }));
+
+    res.status(200).json({
+      message: "success",
+      data: sortedVegetables,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };
