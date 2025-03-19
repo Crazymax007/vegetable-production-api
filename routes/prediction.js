@@ -81,24 +81,29 @@ router.post("/check-available-farmers", (req, res) => {
       .json({ success: false, error: "Missing plant parameter" });
   }
 
-  // เรียกใช้ Python script เพื่อดึงข้อมูลจำนวนลูกสวนที่มี
+  // เพิ่ม timeout handling
   const pythonProcess = spawn("python", ["check_farmers.py", plant]);
+  
+  // Set timeout for the process
+  const timeout = setTimeout(() => {
+    pythonProcess.kill();
+    res.status(504).json({ success: false, error: "Request timeout" });
+  }, 30000); // 30 seconds timeout
 
   let dataToSend = "";
   let errorOutput = "";
 
-  // รับข้อมูลจาก stdout ของ Python script
   pythonProcess.stdout.on("data", (data) => {
     dataToSend += data.toString();
   });
 
-  // รับข้อมูล error จาก stderr
   pythonProcess.stderr.on("data", (data) => {
     errorOutput += data.toString();
   });
 
-  // ตรวจสอบเมื่อ Python script ทำงานเสร็จ
   pythonProcess.on("close", (code) => {
+    clearTimeout(timeout); // Clear timeout when process completes
+
     if (code === 0) {
       try {
         const jsonResponse = JSON.parse(dataToSend);
@@ -120,6 +125,12 @@ router.post("/check-available-farmers", (req, res) => {
     } else {
       res.status(500).json({ success: false, error: errorOutput });
     }
+  });
+
+  // Add error handler for process
+  pythonProcess.on("error", (err) => {
+    clearTimeout(timeout);
+    res.status(500).json({ success: false, error: err.message });
   });
 });
 
