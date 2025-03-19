@@ -1,6 +1,8 @@
 const Farmer = require("../schemas/farmerSchema");
 const User = require("../schemas/userSchema");
 
+const { formatFarmer } = require("../utils/formatList");
+
 exports.addFarmer = async (req, res) => {
   try {
     const { firstName, lastName, nickname, phone, location } = req.body;
@@ -51,7 +53,7 @@ exports.getFarmer = async (req, res) => {
     const farmers = await Farmer.find();
     const count = await Farmer.countDocuments();
     res.json({
-      message: "getFarmer successfully",
+      message: "success",
       count,
       data: farmers,
     });
@@ -194,13 +196,15 @@ exports.deleteFarmerById = async (req, res) => {
       });
     }
     // ลบ farmer
-    await User.deleteMany({ farmerId: farmer._id });
+    await Farmer.findByIdAndDelete(id);
 
     // ลบ User ที่เชื่อมโยงกับ Farmer
     const usersToDelete = await User.find({ farmerId: farmer._id });
     if (usersToDelete.length > 0) {
       await Farmer.findByIdAndDelete(id);
       console.log(`Deleted ${usersToDelete.length} users linked to farmer.`);
+    } else {
+      console.log("No users linked to farmer.");
     }
 
     // ส่งข้อความยืนยันการลบ

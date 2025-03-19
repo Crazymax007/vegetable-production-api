@@ -18,43 +18,32 @@
 | `/api/admin/farmer/:id` | PUT    | Update farmer by Id | `{"id":123,(ต่อด้วยข้อมูลของfarmerทั้งหมด)`      |
 | `/api/admin/farmer/:id` | DELETE | Delete farmer by ID | `{"id":123}`                                     |
 
-## Users
+## Users Management
 
 | Endpoint              | Method | Description       | Body                                             |
 | --------------------- | ------ | ----------------- | ------------------------------------------------ |
 | `/api/admin/user`     | POST   | Add a user        | `ข้อมูลของfarmerทั้งหมด มันยาวเกินขี้เกียจเพิ่ม` |
 | `/api/admin/user`     | GET    | Get user          | None                                             |
 | `/api/admin/user/:id` | GET    | Get user by Id    | `{"id":123}`                                     |
-| `/api/admin/user/:id` | PUT    | Update user by Id | `{"id":123,(ต่อด้วยข้อมูลของfarmerทั้งหมด)`      |
+| `/api/admin/user/:id` | PUT    | Update user by Id | `{"id":123,(user)`                               |
 | `/api/admin/user/:id` | DELETE | Delete user by ID | `{"id":123}`                                     |
 
-## Product
+## Vegetables Management
 
-| Endpoint              | Method | Description             | Body                                                                                                        |
-| --------------------- | ------ | ----------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `/api/product`        | POST   | Create product          | `{ "title": "TEST", "description": "test", "price": 10000, "quantity": 20, "categoryId": 2, "images": [] }` |
-| `/api/product/:id`    | GET    | Get product by ID       | None                                                                                                        |
-| `/api/product/:id`    | DELETE | Delete product by ID    | None                                                                                                        |
-| `/api/productby`      | POST   | Get products by filters | `{ "sort": "price", "order": "asc", "limit": 2 }` or `{ "sort": "quantity", "order": "desc", "limit": 2 }`  |
-| `/api/search/filters` | POST   | Search with filters     | `{ "query": "mouse" }`, `{ "price": [100, 600] }`, or `{ "category": [1, 2] }`                              |
+| Endpoint              | Method | Description            | Body                                    |
+| --------------------- | ------ | ---------------------- | --------------------------------------- |
+| `/api/vegetables`     | POST   | Add Vegetable          | `{"name":"คะน้า"}`                      |
+| `/api/vegetables`     | GET    | Get Vegetable          | None                                    |
+| `/api/vegetables/:id` | GET    | Get Vegetable by Id    | `{"id":123}`                            |
+| `/api/vegetables/:id` | PATCH  | Update Vegetable by Id | `{"id":123,(ต่อด้วยข้อมูลของVegetable)` |
+| `/api/vegetables/:id` | DELETE | Delete Vegetable by ID | `{"id":123}`                            |
 
-## User Management
+## Orders Management
 
-| Endpoint             | Method | Description        | Body                                                                                         |
-| -------------------- | ------ | ------------------ | -------------------------------------------------------------------------------------------- |
-| `/api/users`         | GET    | Get all users      | None                                                                                         |
-| `/api/change-status` | POST   | Change user status | `{ "id": 1, "enabled": false }`                                                              |
-| `/api/change-role`   | POST   | Change user role   | `{ "id": 1, "role": "user" }`                                                                |
-| `/api/user/cart`     | POST   | Add to cart        | `{ "cart": [{ "id": 1, "count": 2, "price": 100 }, { "id": 5, "count": 1, "price": 200 }] }` |
-| `/api/user/cart`     | GET    | Get cart           | None                                                                                         |
-| `/api/user/cart`     | DELETE | Delete cart        | None                                                                                         |
-| `/api/user/address`  | POST   | Add user address   | `{ "address": "korat" }`                                                                     |
-| `/api/user/order`    | POST   | Place an order     | None                                                                                         |
-| `/api/user/order`    | GET    | Get user orders    | None                                                                                         |
-
-## Admin
-
-| Endpoint            | Method | Description         | Body                                            |
-| ------------------- | ------ | ------------------- | ----------------------------------------------- |
-| `/api/user/order`   | PUT    | Update order status | `{ "orderId": 35, "orderStatus": "Completed" }` |
-| `/api/admin/orders` | GET    | Get all orders      | None                                            |
+| Endpoint              | Method | Description         | Body                                              |
+| --------------------- | ------ | ------------------- | ------------------------------------------------- |
+| `/api/orders`         | POST   | Add orders          | `{"id":123, (และข้อมูลลูกสวน,วันที่, จำนวนกิโล)}` |
+| `/api/orders?limit=5` | GET    | Get All orders      | ถ้าอยากกำหนดจำนวนที่จะดูก็ใส่limit                |
+| `/api/orders/:id`     | GET    | Get orders by Id    | `{"id":123}`                                      |
+| `/api/orders/:id`     | PATCH  | Update orders by Id | `{"id":123,(และข้อมูลลูกสวน,วันที่, จำนวนกิโล)`   |
+| `/api/orders/:id`     | DELETE | Delete orders by ID | `{"id":123}`                                      |

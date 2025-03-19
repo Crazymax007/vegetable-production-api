@@ -1,35 +1,44 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-// กำหนด schema สำหรับ Order
 const orderSchema = new Schema(
   {
-    orderDate: { type: Date, required: true }, // วันที่สั่งปลูก
-    vegetable: { type: Schema.Types.ObjectId, ref: "Vegetable", required: true }, // ชนิดของผักที่สั่ง
+    orderDate: { type: Date, required: true },
+    vegetable: {
+      type: Schema.Types.ObjectId,
+      ref: "Vegetable",
+      required: true,
+    },
+    buyer: {
+      type: Schema.Types.ObjectId,
+      ref: "Buyer",
+      required: true,
+    },
     season: {
       type: String,
       enum: ["Rain", "Summer"],
       required: true,
-    }, // ฤดูการปลูก
+    },
     details: [
       {
         farmerId: {
           type: Schema.Types.ObjectId,
           ref: "Farmer",
           required: true,
-        }, // ลูกสวนที่ปลูก
-        quantityKg: { type: Number, required: true }, // จำนวนที่สั่งปลูก (กิโลกรัม)
+        },
+        quantityKg: { type: Number, required: true },
         delivery: {
-          actualKg: { type: Number, default: 0 }, // จำนวนที่ส่งจริง (กิโลกรัม)
-          deliveredDate: { type: Date }, // วันที่ส่งจริง
+          actualKg: { type: Number, default: 0 },
+          deliveredDate: { type: Date, default: null },
           status: {
             type: String,
             enum: ["Pending", "Complete"],
             default: "Pending",
-          }, // สถานะการส่ง
+          },
         },
       },
     ],
+    dueDate: { type: Date, required: true },
   },
   { timestamps: true }
 );
