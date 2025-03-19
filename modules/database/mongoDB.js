@@ -12,7 +12,11 @@ const connectMongoDB = async () => {
   try {
     // เชื่อมต่อ MongoDB
     await mongoose.connect(MONGODBDATABASEURI);
-    console.log(chalk.blue("MongoDB Connected"));
+    
+    // Check if connection is using MongoDB Atlas or Community Edition
+    const isAtlas = MONGODBDATABASEURI.includes('mongodb+srv');
+    console.log(chalk.blue("MongoDB Connected"), 
+      chalk.yellow(`[${isAtlas ? 'Atlas' : 'Community Edition'}]`));
   } catch (err) {
     console.error(chalk.red("Error connecting to MongoDB:"), err);
   }
