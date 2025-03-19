@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+            color: white;
+            animation: shake 0.5s infinite;
+        }
+        h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            text-shadow: 4px 4px 0px #ff00ff, 7px 7px 0px rgba(0,0,0,0.3);
+            transform: rotate(-3deg);
+        }
+        .grape {
+            width: 120px;
+            height: 120px;
+            padding: 20px;
+            animation: crazyRotate 2s ease-in-out infinite;
+        }
+        @keyframes crazyRotate {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(90deg) scale(1.2); }
+            50% { transform: rotate(180deg) scale(1); }
+            75% { transform: rotate(270deg) scale(1.2); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            25% { transform: translate(-1px, -2px) rotate(-1deg); }
+            50% { transform: translate(-3px, 0px) rotate(1deg); }
+            75% { transform: translate(3px, 2px) rotate(-1deg); }
+            100% { transform: translate(1px, -1px) rotate(0deg); }
+        }
+        .description {
+            margin-top: 20px;
+            font-size: 1.8em;
+            max-width: 600px;
+            padding: 0 20px;
+            animation: rainbow 3s linear infinite;
+        }
+        @keyframes rainbow {
+            0% { color: #ff0000; }
+            20% { color: #ffff00; }
+            40% { color: #00ff00; }
+            60% { color: #00ffff; }
+            80% { color: #ff00ff; }
+            100% { color: #ff0000; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><%= title %></h1>
+        <img src="/images/what.png" alt="Max" class="grape">
+        <div class="description">
+            <p>โอ้ มายก๊อด!!! นี่นายจะมาใช้ API ของฉันอย่างนั้นหรือ?</p>
+        </div>
+    </div>
+</body>
+</html>
