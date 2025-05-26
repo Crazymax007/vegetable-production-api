@@ -48,8 +48,3 @@ This section describes the available API endpoints and the required request data
 | `/api/orders/:id`     | PATCH  | Update orders by Id | `{"id":123, (includes farmer info, date, and quantity)}` |
 | `/api/orders/:id`     | DELETE | Delete orders by ID | `{"id":123}`                                             |
 """
-
-# Save as a markdown file
-path = Path("/mnt/data/API_Documentation.md")
-path.write_text(api_doc)
-path.name
